@@ -97,9 +97,8 @@ class FidotronMatchNode {
 }
 
 class FidotronPanel {
-    constructor(title, cancelHandler) {
+    constructor(title) {
         this.title = title;
-        this.cancelHandler = cancelHandler;
 
         let e = document.createElement("div");
         e.className = "panel";
@@ -125,6 +124,10 @@ class FidotronPanel {
 
         this.element = e;
         this.panelBody = panelBody;
+    }
+
+    SetCancelHandler(cancelHandler) {
+        this.cancelHandler = cancelHandler;
     }
 
     Element() {
@@ -311,15 +314,19 @@ class FidotronConnection {
 var c = null;
  
 function subscribePanel(pattern) {
-    let p = new FidotronPanel(pattern, function(panel) {
-        // TODO cancel subscription
-    });
+    let p = new FidotronPanel(pattern);
 
     document.getElementById("panels-container").appendChild(p.Element());
 
-    c.Subscribe(pattern, function(topic, payload) {
+    let subListener = function(topic, payload) {
         p.Append("Received "+topic+" "+payload);
+    };
+
+    p.SetCancelHandler(function(panel) {
+        c.Unsubscribe(pattern, subListener);
     });
+
+    c.Subscribe(pattern, subListener);
 }
 
 function init() {

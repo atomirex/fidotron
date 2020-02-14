@@ -2,14 +2,14 @@ package fidotron
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"sync"
 	"time"
 
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 )
 
 type Server struct {
@@ -82,7 +82,7 @@ func (sc *streamingConnection) run() {
 		for {
 			msg := &WSMessage{}
 			sc.ws.SetReadDeadline(time.Now().Add(4 * time.Second))
-			err := websocket.JSON.Receive(sc.ws, &msg)
+			err := sc.ws.ReadJSON(&msg)
 			if err != nil {
 				fmt.Println("Receive error " + err.Error())
 				terminating <- true
@@ -110,8 +110,7 @@ func (sc *streamingConnection) run() {
 		select {
 		case msg := <-sc.outbox:
 			sc.ws.SetWriteDeadline(time.Now().Add(4 * time.Second))
-			b, _ := json.Marshal(msg)
-			_, err := sc.ws.Write(b)
+			err := sc.ws.WriteJSON(msg)
 			if err != nil {
 				fmt.Println("Send error " + err.Error())
 				// TODO terminate the receiver?
@@ -149,10 +148,21 @@ func (u *uploadedCache) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) Start() {
-	http.Handle("/websocket", websocket.Handler(func(ws *websocket.Conn) {
-		sc := newStreamingConnection(ws, s)
+	var upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
+
+	http.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		sc := newStreamingConnection(conn, s)
 		sc.run()
-	}))
+	})
 
 	http.HandleFunc("/push", func(rw http.ResponseWriter, r *http.Request) {
 		s.broker.Send(r.FormValue("topic"), []byte(r.FormValue("payload")))

@@ -1,7 +1,6 @@
 package fidotron
 
 import (
-	"log"
 	"strings"
 )
 
@@ -67,7 +66,6 @@ type matchNode struct {
 }
 
 func (n *matchNode) match(output map[Subscriber]bool, bindings map[Subscriber]map[string]string, path []string, index int) {
-	log.Println("Digging index", index)
 	if index < len(path) {
 		if n.children["#"] != nil {
 			for s := range n.children["#"].subscribers {
@@ -91,12 +89,10 @@ func (n *matchNode) match(output map[Subscriber]bool, bindings map[Subscriber]ma
 
 		for id, subs := range n.wildcards {
 			for s := range subs {
-				log.Println("Looking at wildcard", id, "for candidate", path[index])
 				if bindings[s] == nil {
 					bindings[s] = make(map[string]string)
 				}
 				bindings[s][id] = path[index]
-				log.Println("Values bound", s, id, path[index], index)
 			}
 		}
 
@@ -112,31 +108,33 @@ func (n *matchNode) match(output map[Subscriber]bool, bindings map[Subscriber]ma
 
 func (n *matchNode) addSubscription(sub Subscriber, path []string, index int) {
 	if index < len(path) {
-		if path[index][0] == '#' {
-			p := path[index][1:]
-			if len(p) > 0 {
-				if n.remainers[p] == nil {
-					n.remainers[p] = make(map[Subscriber]bool)
+		p := path[index]
+		switch p[0] {
+		case '#':
+			name := p[1:]
+			if len(name) > 0 {
+				if n.remainers[name] == nil {
+					n.remainers[name] = make(map[Subscriber]bool)
 				}
-				n.remainers[p][sub] = true
+				n.remainers[name][sub] = true
 			}
-		}
-
-		if path[index][0] == '+' {
-			p := path[index][1:]
-			if len(p) > 0 {
-				if n.wildcards[p] == nil {
-					n.wildcards[p] = make(map[Subscriber]bool)
+			p = "#"
+		case '+':
+			name := p[1:]
+			if len(name) > 0 {
+				if n.wildcards[name] == nil {
+					n.wildcards[name] = make(map[Subscriber]bool)
 				}
-				n.wildcards[p][sub] = true
+				n.wildcards[name][sub] = true
 			}
+			p = "+"
 		}
 
-		if n.children[path[index]] == nil {
-			n.children[path[index]] = newMatchNode()
+		if n.children[p] == nil {
+			n.children[p] = newMatchNode()
 		}
 
-		n.children[path[index]].addSubscription(sub, path, index+1)
+		n.children[p].addSubscription(sub, path, index+1)
 	} else if index == len(path) {
 		n.subscribers[sub] = true
 	}

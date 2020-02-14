@@ -2,6 +2,7 @@ package fidotron
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -21,6 +22,40 @@ func TestPatternSetup(t *testing.T) {
 	testPatternRaw(t, "/hello/world", "hello/world")
 	testPatternRaw(t, "hello/world/", "hello/world")
 	testPatternRaw(t, "/hello/world/", "hello/world")
+}
+
+func (m *matchNode) tabsOut(tabs string, b *strings.Builder) {
+	b.WriteString(tabs)
+	b.WriteString("MatchNode\n")
+	b.WriteString(tabs)
+	b.WriteString("Children\n")
+	for c, n := range m.children {
+		b.WriteString(tabs)
+		b.WriteString("  ")
+		b.WriteString(c)
+		b.WriteString(":\n")
+		n.tabsOut(tabs+"  ", b)
+	}
+	if len(m.wildcards) > 0 {
+		b.WriteString(tabs)
+		b.WriteString("Wildcards\n")
+		for c, _ := range m.wildcards {
+			b.WriteString(tabs)
+			b.WriteString("  ")
+			b.WriteString(c)
+			b.WriteString(":\n")
+		}
+	}
+	if len(m.remainers) > 0 {
+		b.WriteString(tabs)
+		b.WriteString("Remainers\n")
+		for c, _ := range m.remainers {
+			b.WriteString(tabs)
+			b.WriteString("  ")
+			b.WriteString(c)
+			b.WriteString(":\n")
+		}
+	}
 }
 
 func testPatternMatching(t *testing.T, pattern string, query string, shouldmatch bool) {
@@ -106,9 +141,15 @@ func TestMatcher(t *testing.T) {
 }
 
 func testPatternMatcherBindings(t *testing.T, pattern string, query string, bindings map[string]string) {
+	t.Logf("Testing pattern %s", pattern)
 	ts := &testsub{Name: pattern}
 	m := NewMatcher()
 	m.AddSubscription(&Subscription{Pattern: NewPattern(pattern), Subscriber: ts})
+
+	b := &strings.Builder{}
+	m.root.tabsOut("", b)
+	t.Logf("\n%s\n", b.String())
+
 	_, r := m.Match(query)
 
 	if len(r) != 1 {
@@ -157,8 +198,8 @@ func TestMatcherBindings(t *testing.T) {
 	dualbindings["first"] = "1st"
 	dualbindings["second"] = "2nd"
 
-	// longremainer := make(map[string]string)
-	// longremainer["this"] = "world/whatever"
+	longremainer := make(map[string]string)
+	longremainer["this"] = "world/whatever"
 
 	testPatternMatcherBindings(t, "yes", "yes", empty)
 	testPatternMatcherBindings(t, "yes", "no", empty)
@@ -170,14 +211,10 @@ func TestMatcherBindings(t *testing.T) {
 	testPatternMatcherBindings(t, "hello/world", "hello/world", empty)
 	testPatternMatcherBindings(t, "hello/world/#name", "hello/world/value", bindings)
 	testPatternMatcherBindings(t, "+name/world", "value/world", bindings)
-
-	// TODO looks like the problem is the matching chain contains the names, not just +/# when appropriate
-	// TODO verify and change
-
 	testPatternMatcherBindings(t, "+first/+second", "1st/2nd", dualbindings)
-	// testPatternMatcherBindings(t, "hello/+/whatever", "hello/world", empty)
-	// testPatternMatcherBindings(t, "hello/+name/whatever", "hello/value/whatever", bindings)
-	// testPatternMatcherBindings(t, "hello/#this", "hello/world/whatever", longremainer)
-	// testPatternMatcherBindings(t, "hello/+", "hello/world/whatever", empty)
-	// testPatternMatcherBindings(t, "hello/world/+name", "hello/world/value", bindings)
+	testPatternMatcherBindings(t, "hello/+/whatever", "hello/world", empty)
+	testPatternMatcherBindings(t, "hello/+name/whatever", "hello/value/whatever", bindings)
+	testPatternMatcherBindings(t, "hello/#this", "hello/world/whatever", longremainer)
+	testPatternMatcherBindings(t, "hello/+", "hello/world/whatever", empty)
+	testPatternMatcherBindings(t, "hello/world/+name", "hello/world/value", bindings)
 }

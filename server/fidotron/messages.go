@@ -3,9 +3,7 @@ package fidotron
 import "fmt"
 
 const (
-	CmdPing = iota
-	CmdPong
-	CmdUpdate
+	CmdUpdate = iota
 	CmdError
 	CmdSubscriptionRequest
 	CmdSubscriptionStarted

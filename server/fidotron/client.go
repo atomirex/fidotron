@@ -3,14 +3,14 @@ package fidotron
 import (
 	"fmt"
 	"log"
-	"time"
 
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 )
 
 /*
 TODO
 
+- automated tests
 - subscriber patterns with named parameters
 - bus to struct adapters
 - zero type update batching (to enable structs)
@@ -47,7 +47,7 @@ func NewClient() *Client {
 
 	go func() {
 		for {
-			ws, err := websocket.Dial("ws://127.0.0.1:8080/websocket", "", "http://127.0.0.1:8080/")
+			ws, _, err := websocket.DefaultDialer.Dial("ws://127.0.0.1:8080/websocket", nil)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -75,13 +75,7 @@ func NewClient() *Client {
 						}
 						break
 					case msg := <-c.outbox:
-						err = websocket.JSON.Send(ws, msg)
-						if err != nil {
-							log.Fatal(err)
-						}
-						break
-					case <-time.After(2 * time.Second):
-						err = websocket.JSON.Send(ws, &WSMessage{Cmd: CmdPing})
+						err = ws.WriteJSON(msg)
 						if err != nil {
 							log.Fatal(err)
 						}
@@ -92,8 +86,7 @@ func NewClient() *Client {
 
 			for {
 				msg := &WSMessage{}
-				ws.SetReadDeadline(time.Now().Add(4 * time.Second))
-				err = websocket.JSON.Receive(ws, &msg)
+				err = ws.ReadJSON(&msg)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -101,11 +94,6 @@ func NewClient() *Client {
 				switch msg.Cmd {
 				case CmdUpdate:
 					c.broker.Send(msg.Topic, []byte(msg.Payload))
-				case CmdPing:
-					c.outbox <- &WSMessage{Cmd: CmdPong}
-					break
-				case CmdPong:
-					break
 				case CmdError:
 					log.Fatal("Error received from server")
 				}
@@ -115,7 +103,6 @@ func NewClient() *Client {
 		fmt.Println("Ending goroutine for unknown reason")
 	}()
 
-	c.outbox <- &WSMessage{Cmd: CmdPing}
 	c.outbox <- &WSMessage{Cmd: CmdSubscriptionRequest, Topic: "#"}
 
 	return c

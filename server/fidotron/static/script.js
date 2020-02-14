@@ -1,12 +1,10 @@
 const FidotronCmds = [
-    "ping", // 0
-    "pong", // 1
-    "update", // 2
-    "error", // 3
-    "subrequest", // 4
-    "substarted", // 5
-    "unsubrequest", // 6
-    "substopped" // 7
+    "update", // 0
+    "error", // 1
+    "subrequest", // 2
+    "substarted", // 3
+    "unsubrequest", // 4
+    "substopped" // 5
 ];
 
 function mapOfArray(a) {
@@ -84,9 +82,6 @@ class FidotronConnection {
         this.observer = observer;
         this.subscriptions = {};
         this.matcher = new FidotronMatchNode();
-
-        this.toSendPing = null;
-        this.pingSent = null;
     }
 
     pathSections(path) {
@@ -136,25 +131,14 @@ class FidotronConnection {
             that.observer.Connected();
             for(var s in that.subscriptions) {
                 if(that.subscriptions.hasOwnProperty(s)) {
-                    that.Send({Cmd:4, Topic:s});
+                    that.Send({Cmd:FidotronCmdsMapped["subrequest"], Topic:s});
                 }
             }
-            that.schedulePing();
         };
 
         this.socket.onclose = function(event) {
             that.observer.Disconnected();
             that.socket = null;
-
-            if(that.pingSent != null) {
-                clearTimeout(that.pingSent);
-                that.pingSent = null;
-            }
-
-            if(that.toSendPing != null) {
-                clearTimeout(that.toSendPing);
-                that.toSendPing = null;
-            }
 
             if(that.shouldConnect) {
                 that.backoff = that.backoff * 2;
@@ -175,18 +159,8 @@ class FidotronConnection {
         this.socket.onmessage = function(event) {
             let data = JSON.parse(event.data);
 
-            if(that.pingSent != null) {
-                clearTimeout(that.pingSent);
-                that.pingSent = null;
-            }
-
             switch(data.Cmd) {
-            case 0: // Ping
-                that.Send({Cmd:1});
-                break;
-            case 1: // Pong
-                break;
-            case 2: // Update
+            case FidotronCmdsMapped["update"]:
                 let topic = data.Topic;
                 let payload = data.Payload;
                 let matches = that.match(topic);
@@ -198,32 +172,8 @@ class FidotronConnection {
         }
     }
 
-    cancelPing() {
-        if(this.toSendPing != null) {
-            clearTimeout(this.toSendPing);
-        }
-    }
-
-    pongTimedOut() {
-        if(this.socket != null) {
-            this.socket.close();
-        }
-    }
-
-    schedulePing() {
-        this.cancelPing();
-
-        var that = this;
-
-        this.toSendPing = setTimeout(function() {
-            that.Send({Cmd:0});
-            that.pingSent = setTimeout(that.pongTimedOut, 2000);
-        }, 2000);
-    }
-
     Send(msg) {
         if(this.socket != null) {
-            this.schedulePing();
             this.socket.send(JSON.stringify(msg));
         }
     }
@@ -238,7 +188,7 @@ class FidotronConnection {
 
             this.matcher.addSubscription(listener, this.pathSections(pattern), 0);
 
-            this.Send({Cmd:4, Topic:pattern});
+            this.Send({Cmd:FidotronCmdsMapped["subrequest"], Topic:pattern});
         }
     }
 
@@ -255,7 +205,7 @@ class FidotronConnection {
 
                 this.matcher.removeSubscription(listener, this.pathSections(pattern), 0);
 
-                this.Send({Cmd:6, Topic:pattern});
+                this.Send({Cmd:FidotronCmdsMapped["unsubrequest"], Topic:pattern});
             }
         }
     }
@@ -290,7 +240,7 @@ class FidotronConnection {
         xhr.send(fd);
         */
 
-        this.Send({"Cmd":2, "Topic": topic, "Payload": payload});
+        this.Send({"Cmd":FidotronCmdsMapped["update"], "Topic": topic, "Payload": payload});
     }
 
     ShouldConnect(shouldConnect) {

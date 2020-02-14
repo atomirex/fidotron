@@ -81,7 +81,6 @@ func (sc *streamingConnection) run() {
 	go func() {
 		for {
 			msg := &WSMessage{}
-			sc.ws.SetReadDeadline(time.Now().Add(4 * time.Second))
 			err := sc.ws.ReadJSON(&msg)
 			if err != nil {
 				fmt.Println("Receive error " + err.Error())
@@ -90,9 +89,6 @@ func (sc *streamingConnection) run() {
 			}
 
 			switch msg.Cmd {
-			case CmdPing:
-				sc.outbox <- &WSMessage{Cmd: CmdPong}
-				break
 			case CmdSubscriptionRequest:
 				sc.s.broker.Subscribe(msg.Topic, sc)
 				break
@@ -109,7 +105,6 @@ func (sc *streamingConnection) run() {
 	for {
 		select {
 		case msg := <-sc.outbox:
-			sc.ws.SetWriteDeadline(time.Now().Add(4 * time.Second))
 			err := sc.ws.WriteJSON(msg)
 			if err != nil {
 				fmt.Println("Send error " + err.Error())

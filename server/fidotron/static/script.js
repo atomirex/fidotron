@@ -24,8 +24,24 @@ class FidotronMatchNode {
 		this.children = {};
         this.subscribers = new Set();
     }
+
+    pathSections(path) {
+        let s = path.split("/");
+        let p = [];
+        for(let i=0; i<s.length; i++) {
+            if(s[i] !== "") {
+                p.push(s[i]);
+            }
+        }
+        return p;
+    }
     
-    match(output, path, index) {
+    match(output, path) {
+        let sections = this.pathSections(path);
+        return this.innerMatch(output, sections, 0);
+    }
+
+    innerMatch(output, path, index) {
         if (index < path.length) {
             if (this.children["#"] != null) {
                 for(let s of this.children["#"].subscribers) {
@@ -34,11 +50,11 @@ class FidotronMatchNode {
             }
 
             if (this.children["+"] != null) {
-                n.children["+"].match(output, path, index+1);
+                this.children["+"].innerMatch(output, path, index+1);
             }
 
             if (this.children[path[index]] != null) {
-                this.children[path[index]].match(output, path, index+1);
+                this.children[path[index]].innerMatch(output, path, index+1);
             }
         } else if (index == path.length) {
             for(let s of this.subscribers) {
@@ -47,28 +63,81 @@ class FidotronMatchNode {
         }
     }
 
-    addSubscription(sub, path, index) {
+    addSubscription(sub, path) {
+        this.innerAddSubscription(sub, this.pathSections(path), 0);
+    }
+
+    innerAddSubscription(sub, path, index) {
         if(index < path.length) {
             if( this.children[path[index]] == null) {
                 this.children[path[index]] = new FidotronMatchNode();
             }
 
-            this.children[path[index]].addSubscription(sub, path, index+1);
+            this.children[path[index]].innerAddSubscription(sub, path, index+1);
         } else if (index == path.length) {
             this.subscribers.add(sub);
         }
     }
 
-    removeSubscription(sub, path, index) {
+    removeSubscription(sub, path) {
+        this.innerRemoveSubscription(sub, this.pathSections(path), 0);
+    }
+
+    innerRemoveSubscription(sub, path, index) {
         if (index < path.length) {
             if (this.children[path[index]] == null) {
                 return;
             }
 
-            this.children[path[index]].removeSubscription(sub, path, index+1);
+            this.children[path[index]].innerRemoveSubscription(sub, path, index+1);
         } else if (index == path.length) {
             this.subscribers.delete(sub);
         }
+    }
+}
+
+class FidotronPanel {
+    constructor(title, cancelHandler) {
+        this.title = title;
+        this.cancelHandler = cancelHandler;
+
+        let e = document.createElement("div");
+        e.className = "panel";
+
+        let titleElement = document.createElement("p");
+        titleElement.className = "panel-title";
+        titleElement.innerHTML = this.title;
+
+        let panelCloser = document.createElement("p");
+        panelCloser.className = "panel-closer";
+        panelCloser.innerHTML = "X";
+        var that = this;
+        panelCloser.onclick = function() {
+            that.close();
+        };
+
+        let panelBody = document.createElement("p");
+        panelBody.className = "panel-body";
+
+        e.appendChild(titleElement);
+        e.appendChild(panelCloser);
+        e.appendChild(panelBody);
+
+        this.element = e;
+        this.panelBody = panelBody;
+    }
+
+    Element() {
+        return this.element;
+    }
+
+    Append(message) {
+        this.panelBody.innerHTML = message + "<br />" + this.panelBody.innerHTML;
+    }
+
+    close() {
+        this.cancelHandler(this);
+        document.getElementById("panels-container").removeChild(this.element);
     }
 }
 
@@ -84,21 +153,10 @@ class FidotronConnection {
         this.matcher = new FidotronMatchNode();
     }
 
-    pathSections(path) {
-        let s = path.split("/");
-        let p = [];
-        for(let i=0; i<s.length; i++) {
-            if(s[i] !== "") {
-                p.push(s);
-            }
-        }
-        return p;
-    }
-
     match(topic) {
         let result = new Set();
 
-	    this.matcher.match(result, this.pathSections(topic), 0);
+	    this.matcher.match(result, topic);
 
 	    return result;
     }
@@ -173,7 +231,7 @@ class FidotronConnection {
     }
 
     Send(msg) {
-        if(this.socket != null) {
+        if(this.socket != null && this.socket.readyState == WebSocket.OPEN) {
             this.socket.send(JSON.stringify(msg));
         }
     }
@@ -186,7 +244,7 @@ class FidotronConnection {
         if(!this.subscriptions[pattern].includes(listener)) {
             this.subscriptions[pattern].push(listener);
 
-            this.matcher.addSubscription(listener, this.pathSections(pattern), 0);
+            this.matcher.addSubscription(listener, pattern);
 
             this.Send({Cmd:FidotronCmdsMapped["subrequest"], Topic:pattern});
         }
@@ -203,7 +261,7 @@ class FidotronConnection {
             if(this.subscriptions[pattern].length == 0) {
                 delete this.subscriptions[pattern]
 
-                this.matcher.removeSubscription(listener, this.pathSections(pattern), 0);
+                this.matcher.removeSubscription(listener, pattern);
 
                 this.Send({Cmd:FidotronCmdsMapped["unsubrequest"], Topic:pattern});
             }
@@ -252,6 +310,18 @@ class FidotronConnection {
 
 var c = null;
  
+function subscribePanel(pattern) {
+    let p = new FidotronPanel(pattern, function(panel) {
+        // TODO cancel subscription
+    });
+
+    document.getElementById("panels-container").appendChild(p.Element());
+
+    c.Subscribe(pattern, function(topic, payload) {
+        p.Append("Received "+topic+" "+payload);
+    });
+}
+
 function init() {
     var logview = document.getElementById("log");
 
@@ -281,9 +351,7 @@ function init() {
         }
     });
 
-    c.Subscribe("#", function(topic, payload) {
-        log("Received "+topic+" "+payload);
-    });
-
     c.ShouldConnect(true);
+
+    subscribePanel("#");
 }

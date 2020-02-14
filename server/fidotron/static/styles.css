@@ -23,6 +23,11 @@ p {
     color: #000000;
 }
 
+.panel {
+    color: #000000;
+    background-color: #ff6400;
+}
+
 .content {
     padding: 0px;
     margin: 10px;

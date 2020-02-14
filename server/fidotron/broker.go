@@ -1,6 +1,7 @@
 package fidotron
 
 import (
+	"log"
 	"strings"
 )
 
@@ -61,11 +62,12 @@ type Matcher struct {
 type matchNode struct {
 	children    map[string]*matchNode
 	subscribers map[Subscriber]bool
-	wildcards   map[string]*matchNode
-	remainers   map[string]*matchNode
+	wildcards   map[string]map[Subscriber]bool
+	remainers   map[string]map[Subscriber]bool
 }
 
 func (n *matchNode) match(output map[Subscriber]bool, bindings map[Subscriber]map[string]string, path []string, index int) {
+	log.Println("Digging index", index)
 	if index < len(path) {
 		if n.children["#"] != nil {
 			for s := range n.children["#"].subscribers {
@@ -73,9 +75,9 @@ func (n *matchNode) match(output map[Subscriber]bool, bindings map[Subscriber]ma
 			}
 		}
 
-		for id, child := range n.remainers {
+		for id, subs := range n.remainers {
 			remaining := strings.Join(path[index:], "/")
-			for s := range child.subscribers {
+			for s := range subs {
 				if bindings[s] == nil {
 					bindings[s] = make(map[string]string)
 				}
@@ -87,12 +89,14 @@ func (n *matchNode) match(output map[Subscriber]bool, bindings map[Subscriber]ma
 			n.children["+"].match(output, bindings, path, index+1)
 		}
 
-		for id, child := range n.wildcards {
-			for s := range child.subscribers {
+		for id, subs := range n.wildcards {
+			for s := range subs {
+				log.Println("Looking at wildcard", id, "for candidate", path[index])
 				if bindings[s] == nil {
 					bindings[s] = make(map[string]string)
 				}
 				bindings[s][id] = path[index]
+				log.Println("Values bound", s, id, path[index], index)
 			}
 		}
 
@@ -110,20 +114,22 @@ func (n *matchNode) addSubscription(sub Subscriber, path []string, index int) {
 	if index < len(path) {
 		if path[index][0] == '#' {
 			p := path[index][1:]
-			if n.remainers[p] == nil {
-				n.remainers[p] = newMatchNode()
+			if len(p) > 0 {
+				if n.remainers[p] == nil {
+					n.remainers[p] = make(map[Subscriber]bool)
+				}
+				n.remainers[p][sub] = true
 			}
-
-			n.remainers[p].addSubscription(sub, path, index+1)
 		}
 
 		if path[index][0] == '+' {
 			p := path[index][1:]
-			if n.wildcards[p] == nil {
-				n.wildcards[p] = newMatchNode()
+			if len(p) > 0 {
+				if n.wildcards[p] == nil {
+					n.wildcards[p] = make(map[Subscriber]bool)
+				}
+				n.wildcards[p][sub] = true
 			}
-
-			n.wildcards[p].addSubscription(sub, path, index+1)
 		}
 
 		if n.children[path[index]] == nil {
@@ -155,8 +161,8 @@ func newMatchNode() *matchNode {
 	return &matchNode{
 		children:    make(map[string]*matchNode),
 		subscribers: make(map[Subscriber]bool),
-		wildcards:   make(map[string]*matchNode),
-		remainers:   make(map[string]*matchNode),
+		wildcards:   make(map[string]map[Subscriber]bool),
+		remainers:   make(map[string]map[Subscriber]bool),
 	}
 }
 
@@ -179,12 +185,7 @@ func (m *Matcher) Match(topic string) (map[Subscriber]bool, map[Subscriber]map[s
 	bind := make(map[Subscriber]map[string]string)
 	m.root.match(out, bind, path, 0)
 
-	filtered := make(map[Subscriber]map[string]string)
-	for s := range out {
-		filtered[s] = bind[s]
-	}
-
-	return out, filtered
+	return out, bind
 }
 
 func NewBroker() *Broker {

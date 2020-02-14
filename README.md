@@ -9,7 +9,7 @@ This is in the process of being extracted from a larger mess and cleaned up for 
 consumption.
 
 ## TODO
-* Move to gorilla websockets [DONE] and remove our ping/pong noise
+* Move to gorilla websockets and remove our ping/pong noise DONE
 * Ensure the pub/sub logic is working both in the server and the js
 * AndroidAsync based client (derived from the pub/sub js)
 * Evaluate the app running logic to see if it should be kept/modified/discarded

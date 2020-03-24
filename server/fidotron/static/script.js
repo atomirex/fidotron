@@ -109,7 +109,7 @@ class FidotronPanel {
 
         let panelCloser = document.createElement("p");
         panelCloser.className = "panel-closer";
-        panelCloser.innerHTML = "X";
+        panelCloser.innerHTML = "x";
         var that = this;
         panelCloser.onclick = function() {
             that.close();
@@ -319,7 +319,7 @@ function subscribePanel(pattern) {
     document.getElementById("panels-container").appendChild(p.Element());
 
     let subListener = function(topic, payload) {
-        p.Append("Received "+topic+" "+payload);
+        p.Append(topic+": "+payload);
     };
 
     p.SetCancelHandler(function(panel) {

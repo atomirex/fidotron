@@ -7,30 +7,32 @@
         </script>
     </head>
     <body onload="init();">
-        <div class="content">
-            <img src="logo.svg" width="48" height="48" /><br />
-
-            <h3>Apps</h3>
-            <ul>
-                <li><a href="#" onclick="c.RunApp('littleapp');">littleapp</a></li>
-                <li><a href="#" onclick="c.RunApp('mdns');">mdns</a></li>
-                <li><a href="#" onclick="c.RunApp('nanoleaf');">nanoleaf</a></li>
-            </ul>
-
-            <h3>Send messages</h3>
-            <input type="text" name="topic" id="topic" />
-            <input type="text" name="payload" id="payload" />
-            <input type="submit" value="Send" onclick="c.Push(document.getElementById('topic').value, document.getElementById('payload').value);" />
-
-            <h3>Add Panel</h3>
-            <input type="text" name="panel-topic" id="panel-topic" />
-            <input type="submit" value="Add panel" onclick="subscribePanel(document.getElementById('panel-topic').value);" />
-
-            <h3>Panels</h3>
-            <div id="panels-container"></div>
-
-            <h3>Log</h3>
-            <p id="log"></p>
-        </div>
+        <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr valign="top">
+                <td width="300" align="left">
+                    <div class="sidebar">
+                        <img src="logo.svg" width="48" height="48" /><br />
+            
+                        <h3>Send messages</h3>
+                        <input type="text" name="topic" id="topic" />
+                        <input type="text" name="payload" id="payload" />
+                        <input type="submit" value="Send" onclick="c.Push(document.getElementById('topic').value, document.getElementById('payload').value);" />
+                        
+                        <h3>Add listener</h3>
+                        <input type="text" name="panel-topic" id="panel-topic" />
+                        <input type="submit" value="Add listener" onclick="subscribePanel(document.getElementById('panel-topic').value);" />
+            
+                        <h3>Log</h3>
+                        <p id="log"></p>
+                    </div>
+                </td>
+                <td align="left">
+                    <div class="content">
+                        <h3>Panels</h3>
+                        <div id="panels-container"></div>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </body>
 </html>

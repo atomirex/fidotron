@@ -23,12 +23,49 @@ p {
     color: #000000;
 }
 
+.sidebar {
+    vertical-align: top;
+    width: 300px;
+    margin: 10px;
+}
+
 .panel {
+    display: inline-block;
     color: #000000;
+    background-color: #dfdfdf;
+    width: 200px;
+    height: 300px;
+    margin: 8px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    border:#000000;
+    border-width: 2px;
+    border-style: solid;
+}
+
+.panel-title {
+    position: absolute;
+    top: 0px;
+    left: 16px;
+}
+
+.panel-closer {
+    position: absolute;
+    top: 0px;
+    right: 16px;
+}
+
+.panel-body {
+    position: absolute;
+    top: 32px;
+    left: 16px;
+    right: 16px;
     background-color: #ff6400;
 }
 
 .content {
+    vertical-align: top;
     padding: 0px;
     margin: 10px;
 }

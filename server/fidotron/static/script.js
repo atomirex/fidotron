@@ -330,10 +330,12 @@ function subscribePanel(pattern) {
 }
 
 function init() {
+    var statusView = document.getElementById("status");
     var logview = document.getElementById("log");
 
     function log(msg) {
-        logview.innerHTML += msg + "<br />";
+        statusView.innerHTML = msg;
+        logview.innerHTML =  msg + "<br />" + logview.innerHTML;
     }
 
     c = new FidotronConnection({

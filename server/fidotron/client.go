@@ -15,7 +15,7 @@ type Client struct {
 }
 
 func (c *Client) Send(topic string, payload string) {
-	c.outbox <- &WSMessage{Cmd: CmdUpdate, Topic: topic, Payload: payload}
+	c.outbox <- &Message{Cmd: CmdUpdate, Topic: topic, Payload: payload}
 }
 
 func (c *Client) Subscribe(pattern string, sub Subscriber) {
@@ -76,7 +76,7 @@ func NewClient() *Client {
 			}()
 
 			for {
-				msg := &WSMessage{}
+				msg := &Message{}
 				err = ws.ReadJSON(&msg)
 				if err != nil {
 					log.Fatal(err)
@@ -94,7 +94,7 @@ func NewClient() *Client {
 		fmt.Println("Ending goroutine for unknown reason")
 	}()
 
-	c.outbox <- &WSMessage{Cmd: CmdSubscriptionRequest, Topic: "#"}
+	c.outbox <- &Message{Cmd: CmdSubscriptionRequest, Topic: "#"}
 
 	return c
 }

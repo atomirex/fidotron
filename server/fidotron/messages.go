@@ -11,14 +11,14 @@ const (
 	CmdSubscriptionStopped
 )
 
-type WSMessage struct {
+type Message struct {
 	Cmd     int
 	Topic   string
 	Payload string
 }
 
-func (wm *WSMessage) String() string {
-	return fmt.Sprintf("Cmd: %d Topic: %s Payload %s", wm.Cmd, wm.Topic, wm.Payload)
+func (m *Message) String() string {
+	return fmt.Sprintf("Cmd: %d Topic: %s Payload %s", m.Cmd, m.Topic, m.Payload)
 }
 
 type Update struct {

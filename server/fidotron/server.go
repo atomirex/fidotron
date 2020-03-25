@@ -21,34 +21,34 @@ func NewServer(b *Broker) *Server {
 type streamingConnection struct {
 	ws            *websocket.Conn
 	s             *Server
-	outbox        chan *WSMessage
+	outbox        chan *Message
 	subscriptions map[string]bool
 }
 
 func newStreamingConnection(ws *websocket.Conn, s *Server) *streamingConnection {
 	return &streamingConnection{
 		ws:            ws,
-		outbox:        make(chan *WSMessage),
+		outbox:        make(chan *Message),
 		s:             s,
 		subscriptions: make(map[string]bool),
 	}
 }
 
 func (sc *streamingConnection) Write(update *Update) {
-	sc.outbox <- &WSMessage{Cmd: CmdUpdate, Topic: update.Topic, Payload: string(update.Payload)}
+	sc.outbox <- &Message{Cmd: CmdUpdate, Topic: update.Topic, Payload: string(update.Payload)}
 }
 
 func (sc *streamingConnection) Subscribed(pattern string) {
 	if sc.subscriptions != nil {
 		sc.subscriptions[pattern] = true
-		sc.outbox <- &WSMessage{Cmd: CmdSubscriptionStarted, Topic: pattern}
+		sc.outbox <- &Message{Cmd: CmdSubscriptionStarted, Topic: pattern}
 	}
 }
 
 func (sc *streamingConnection) Unsubscribed(pattern string) {
 	if sc.subscriptions != nil {
 		delete(sc.subscriptions, pattern)
-		sc.outbox <- &WSMessage{Cmd: CmdSubscriptionStopped, Topic: pattern}
+		sc.outbox <- &Message{Cmd: CmdSubscriptionStopped, Topic: pattern}
 	}
 }
 
@@ -70,10 +70,9 @@ func (sc *streamingConnection) run() {
 
 	go func() {
 		for {
-			msg := &WSMessage{}
+			msg := &Message{}
 			err := sc.ws.ReadJSON(&msg)
 			if err != nil {
-				fmt.Println("Receive error " + err.Error())
 				terminating <- true
 				return
 			}
@@ -97,8 +96,6 @@ func (sc *streamingConnection) run() {
 		case msg := <-sc.outbox:
 			err := sc.ws.WriteJSON(msg)
 			if err != nil {
-				fmt.Println("Send error " + err.Error())
-				// TODO terminate the receiver?
 				return
 			}
 			break

@@ -18,9 +18,9 @@
                         <input type="text" name="payload" id="payload" />
                         <input type="submit" value="Send" onclick="c.Push(document.getElementById('topic').value, document.getElementById('payload').value);" />
                         
-                        <h3>Add listener</h3>
+                        <h3>Add subscriber</h3>
                         <input type="text" name="panel-topic" id="panel-topic" />
-                        <input type="submit" value="Add listener" onclick="subscribePanel(document.getElementById('panel-topic').value);" />
+                        <input type="submit" value="Add subscriber" onclick="subscribePanel(document.getElementById('panel-topic').value);" />
             
                         <h3>Log</h3>
                         <p id="log"></p>
@@ -28,7 +28,7 @@
                 </td>
                 <td align="left">
                     <div class="content">
-                        <h3>Panels</h3>
+                        <h3>Subscribers</h3>
                         <div id="panels-container"></div>
                     </div>
                 </td>

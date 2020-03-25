@@ -10,8 +10,8 @@ consumption.
 
 ## TODO
 * Move to gorilla websockets and remove our ping/pong noise DONE
+* Evaluate the app running logic to see if it should be kept/modified/discarded (removed) DONE
 * Ensure the pub/sub logic is working both in the server and the js
 * AndroidAsync based client (derived from the pub/sub js)
-* Evaluate the app running logic to see if it should be kept/modified/discarded
 * Authentication/authorization (and sub parts)
 * "One bus" style persistence, as an application(!)

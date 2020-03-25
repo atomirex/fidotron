@@ -1,30 +1,20 @@
 package fidotron
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"sync"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 type Server struct {
-	broker     *Broker
-	appManager *AppManager
-	runner     *Runner
-	uploads    *uploadedCache
+	broker *Broker
 }
 
-func NewServer(b *Broker, am *AppManager, r *Runner) *Server {
+func NewServer(b *Broker) *Server {
 	return &Server{
-		broker:     b,
-		appManager: am,
-		runner:     r,
-		uploads:    newUploadedCache(),
+		broker: b,
 	}
 }
 
@@ -119,29 +109,6 @@ func (sc *streamingConnection) run() {
 	}
 }
 
-type uploadedCache struct {
-	uploads *sync.Map
-}
-
-func newUploadedCache() *uploadedCache {
-	u := &uploadedCache{
-		uploads: &sync.Map{},
-	}
-
-	return u
-}
-
-func (u *uploadedCache) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s := r.URL.Path[len("/uploaded/"):]
-	b, ok := u.uploads.Load(s)
-	if !ok {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	http.ServeContent(w, r, s, time.Now(), bytes.NewReader(b.([]byte)))
-}
-
 func (s *Server) Start() {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -163,47 +130,6 @@ func (s *Server) Start() {
 		s.broker.Send(r.FormValue("topic"), []byte(r.FormValue("payload")))
 		fmt.Fprintf(rw, "OK")
 	})
-
-	http.HandleFunc("/runapp/", func(rw http.ResponseWriter, r *http.Request) {
-		app := r.URL.Path[len("/runapp/"):]
-		a := s.appManager.App(app)
-		// TODO should probably be PIDs not names
-		s.runner.Run(a, a.Name+"/stdout", a.Name+"/stderr")
-		fmt.Fprintf(rw, "OK")
-	})
-
-	http.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseMultipartForm(2000000000)
-		if err != nil {
-			fmt.Println("Error parsing form " + err.Error())
-			return
-		}
-
-		var b bytes.Buffer
-
-		file, header, err := r.FormFile("file")
-		if file != nil {
-			defer file.Close()
-		}
-
-		if err != nil {
-			fmt.Println("ERROR " + err.Error())
-			return
-		}
-
-		io.Copy(&b, file)
-
-		s.uploads.uploads.Store(header.Filename, b.Bytes())
-
-		b.Reset()
-
-		http.Redirect(w, r, "/uploaded/"+header.Filename, http.StatusSeeOther)
-
-		// TODO publish that a file was upload to the relevant topic!
-		return
-	})
-
-	http.Handle("/uploaded/", s.uploads)
 
 	http.Handle("/", http.FileServer(http.Dir("../static")))
 	http.ListenAndServe(":8080", nil)

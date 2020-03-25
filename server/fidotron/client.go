@@ -7,15 +7,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-/*
-TODO
-
-- automated tests
-- subscriber patterns with named parameters
-- bus to struct adapters
-- zero type update batching (to enable structs)
-*/
-
 type Client struct {
 	outbox    chan interface{}
 	broker    *Broker

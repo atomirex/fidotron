@@ -12,17 +12,19 @@ consumption.
 * Move to gorilla websockets and remove our ping/pong noise DONE
 * Evaluate the app running logic to see if it should be kept/modified/discarded (removed) DONE
 * Applications
-    * Some sort of reusable application framework
-    *  MDNS application
+    * Some sort of reusable application framework (go)
+    * MDNS application
     * Nanoleaf application
     * DLNA application
     * "One bus" style persistence, as an application(!)
     * MQTT bridge
     * Zigbee bridge
+    * BTLE bridge
 * JavaScript and web UI
     * Ensure the pub/sub logic is working both in the server and the js
     * Different panel "types" (sliders etc.) in js
-    * Reorderable panels
+    * Generally movable panels/layouts in addition to the ordered ones
+    * Panel configuration via the message bus
 * Core
     * Change socket so binary not json based
     * Use of name tables per connection to reduce size needed

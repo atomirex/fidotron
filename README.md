@@ -20,6 +20,7 @@ consumption.
     * MQTT bridge
     * Zigbee bridge
     * BTLE bridge
+    * Fuzzy logic
 * JavaScript and web UI
     * Ensure the pub/sub logic is working both in the server and the js
     * Move status to bottom of window
@@ -34,7 +35,9 @@ consumption.
 * Android
     * AndroidAsync based client (derived from the pub/sub js)
     * Android video player controlled from bus
+* Arduino
+    * Blast implementation
 * Build and tools
-    * Continuous build and test on OpenBSD and Linux
-    * Remote updates for OpenBSD and Linux
+    * Continuous build and test on OpenBSD(x86) and Linux(x86 and ARM)
+    * Remote updates for OpenBSD(x86) and Linux(x86 and ARM)
     * Ability to actually perform an end-to-end OpenBSD update remotely

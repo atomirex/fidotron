@@ -21,6 +21,11 @@ consumption.
     * Zigbee bridge
     * BTLE bridge
     * Fuzzy logic
+    * D-Bus bridge
+    * MIDI bridge
+    * Audio bridge
+    * Git bridge
+    * Function-as-a-service
 * JavaScript and web UI
     * Ensure the pub/sub logic is working both in the server and the js
     * Move status to bottom of window
@@ -35,6 +40,8 @@ consumption.
 * Android
     * AndroidAsync based client (derived from the pub/sub js)
     * Android video player controlled from bus
+    * Photo/video upload when produced (and audio recordings)
+    * Notification bridge (both listen to existing and create new)
 * Arduino
     * Blast implementation
 * Build and tools

@@ -13,13 +13,15 @@ consumption.
 * [x] Evaluate the app running logic to see if it should be kept/modified/discarded (removed) DONE
 * [ ] Applications
     * [ ] Some sort of reusable application framework (go)
-        * [ ] Startup
-        * [ ] Bus connection
+        * [x] Startup
+        * [x] Bus connection
         * [ ] Health checks
         * [ ] Killing/restarting
         * [ ] Supervision
         * [ ] Automated testing framework for the apps
     * [ ] MDNS/DNS-SD application
+        * [x] Scanning
+        * [ ] Service registering
     * [ ] Nanoleaf application
     * [ ] Filesystem watcher
     * [ ] DLNA application

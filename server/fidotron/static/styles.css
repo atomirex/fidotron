@@ -5,6 +5,12 @@ body {
     padding: 0px;
     color: #000000;
     background: #ffffff;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 300px auto;
+    grid-template-rows: auto 40px;
+    grid-template-areas: "sidebar content" "statusbar statusbar";
 }
 
 h1 {
@@ -27,6 +33,7 @@ p {
     vertical-align: top;
     width: 300px;
     margin: 10px;
+    grid-area:sidebar;
 }
 
 .panel {
@@ -67,7 +74,15 @@ p {
 .content {
     vertical-align: top;
     padding: 0px;
-    margin: 10px;
+    margin: 0px;
+    overflow: auto;
+    grid-area: content;
+}
+
+#statusbar {
+    grid-area: statusbar;
+    overflow: hidden;
+    background-color: #ff6400;
 }
 
 .sidebutton {

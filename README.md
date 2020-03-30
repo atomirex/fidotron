@@ -42,9 +42,17 @@ consumption.
     * [ ] Checklists
     * [ ] Yak
 * [ ] JavaScript and web UI
-    * [ ] Ensure the pub/sub logic is working both in the server and the js
-    * [ ] Move status to bottom of window
+    * [x] Ensure the pub/sub logic is working both in the server and the js
+    * [x] Move status to bottom of window
     * [ ] Different panel "types" (sliders etc.) in js
+        * [ ] Log type
+        * [ ] Tree type
+        * [ ] Text entry
+        * [ ] Number entry
+        * [ ] Slider
+        * [ ] Push button
+        * [ ] Colour selection
+        * [ ] Radio (applicable set on one topic, selection being another)
     * [ ] Generally movable panels/layouts in addition to the ordered ones
     * [ ] Panel configuration via the message bus
 * [ ] Core
@@ -52,6 +60,8 @@ consumption.
     * [ ] Use of name tables per connection to reduce size needed
     * [ ] Raw socket as well as websocket support
     * [ ] Authentication/authorization (and sub parts)
+    * [ ] Standard location for message schemas
+    * [ ] Standard description for object method discovery and invokation
 * [ ] Android
     * [ ] AndroidAsync based client (derived from the pub/sub js)
     * [ ] Android video player controlled from bus

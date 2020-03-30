@@ -7,23 +7,23 @@
         </script>
     </head>
     <body onload="init();">
-        <div class="sidebar">
-            <img src="logo.svg" width="48" height="48" /><br />
-
-            <input type="text" name="topic" id="topic" />
-            <input type="text" name="payload" id="payload" />
-            <input type="submit" value="Send" onclick="c.Push(document.getElementById('topic').value, document.getElementById('payload').value);" />
-            
-            <h3>Add Panel</h3>
-            <input type="text" name="panel-topic" id="panel-topic" />
-            <input type="submit" value="Add subscriber" onclick="subscribePanel(document.getElementById('panel-topic').value);" />           
-
-            <h3>Log</h3>
-            <p id="log"></p>
-        </div>
         <div class="content">
             <div id="panels-container"></div>
         </div>
-        <div id="statusbar"><p id="status"></p></div>
+        <div id="statusbar">
+            <div id="startmenu">
+                <input type="text" name="topic" id="topic" />
+                <input type="text" name="payload" id="payload" />
+                <input type="submit" value="Send" onclick="c.Push(document.getElementById('topic').value, document.getElementById('payload').value);" />
+                
+                <h3>Add Panel</h3>
+                <input type="text" name="panel-topic" id="panel-topic" />
+                <input type="submit" value="Add subscriber" onclick="subscribePanel(document.getElementById('panel-topic').value);" />           
+
+                <h3>Log</h3>
+                <p id="log"></p>
+            </div>
+            <span><img src="logo.svg" width="32" height="32" onclick="showStartMenu();" /><span id="status"></span></span>
+        </div>
     </body>
 </html>

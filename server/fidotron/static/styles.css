@@ -4,13 +4,13 @@ body {
     margin: 0px;
     padding: 0px;
     color: #000000;
-    background: #ffffff;
+    background:  #3f3f3f;
     width: 100%;
     height: 100%;
     display: grid;
-    grid-template-columns: 300px auto;
+    grid-template-columns: auto;
     grid-template-rows: auto 40px;
-    grid-template-areas: "sidebar content" "statusbar statusbar";
+    grid-template-areas: "content" "statusbar";
 }
 
 h1 {
@@ -29,11 +29,14 @@ p {
     color: #000000;
 }
 
-.sidebar {
-    vertical-align: top;
+#startmenu {
+    position: absolute;
     width: 300px;
-    margin: 10px;
-    grid-area:sidebar;
+    padding: 16px;
+    margin: 0px;
+    bottom: 40px;
+    background-color:#ff6400;
+    visibility: hidden;
 }
 
 .panel {
@@ -46,7 +49,7 @@ p {
     position: relative;
     overflow: hidden;
     border-radius: 12px;
-    border:#000000;
+    border:#ffffff;
     border-width: 2px;
     border-style: solid;
 }
@@ -81,8 +84,8 @@ p {
 
 #statusbar {
     grid-area: statusbar;
-    overflow: hidden;
-    background-color: #ff6400;
+    overflow: -moz-hidden-unscrollable;
+    background-color: #dfdfdf;
 }
 
 .sidebutton {

@@ -364,3 +364,13 @@ function init() {
 
     subscribePanel("#");
 }
+
+function showStartMenu() {
+    let e = document.getElementById("startmenu");
+    let style = e.style.visibility;
+    if(style == "visible") {
+        e.style.visibility = "hidden";
+    } else {
+        e.style.visibility = "visible";
+    }
+}

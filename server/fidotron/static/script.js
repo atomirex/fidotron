@@ -145,15 +145,43 @@ class FidotronPanel {
 }
 
 class FidotronConnection {
-    constructor(observer) {
+    constructor() {
         this.shouldConnect = false;
         this.backoffMinimum = 20;
         this.backoff = this.backoffMinimum;
         this.backoffMaximum = 10000;
 
-        this.observer = observer;
+        this.observers = new Set();
+        this.logData = [];
+
         this.subscriptions = {};
         this.matcher = new FidotronMatchNode();
+    }
+
+    AddObserver(observer) {
+        this.observers.add(observer);
+    }
+
+    RemoveObserver(observer) {
+        this.observers.delete(observer);
+    }
+
+    log(msg) {
+        this.logData.unshift(msg);
+        
+        while(this.logData.length > 25) {
+            this.logData.pop();
+        }
+
+        let html = "";
+        for(var i=0; i<this.logData.length; i++) {
+            html += this.logData[i];
+            html += "<br />";
+        }
+
+        for (let o of this.observers) {
+            o.LogUpdated(msg, html);
+        }
     }
 
     match(topic) {
@@ -182,14 +210,20 @@ class FidotronConnection {
             return;
         }
 
-        this.observer.Connecting();
+        this.log("Connecting");
+        for (let o of this.observers) {
+            o.Connecting();
+        }
         this.socket = new WebSocket("ws://127.0.0.1:8080/websocket");
 
         var that = this;
 
         this.socket.onopen = function(event) {
             this.backoff = this.backoffMinimum;
-            that.observer.Connected();
+            that.log("Connected");
+            for (let o of that.observers) {
+                o.Connected();
+            }
             for(var s in that.subscriptions) {
                 if(that.subscriptions.hasOwnProperty(s)) {
                     that.Send({Cmd:FidotronCmdsMapped["subrequest"], Topic:s});
@@ -198,7 +232,10 @@ class FidotronConnection {
         };
 
         this.socket.onclose = function(event) {
-            that.observer.Disconnected();
+            that.log("Disconnected");
+            for (let o of that.observers) {
+                o.Disconnected();
+            }
             that.socket = null;
 
             if(that.shouldConnect) {
@@ -214,7 +251,10 @@ class FidotronConnection {
         };
 
         this.socket.onerror = function(event) {
-            that.observer.Error("Socket error");
+            that.log("Socket error");
+            for (let o of that.observers) {
+                o.Error("Socket error");
+            }
         };
 
         this.socket.onmessage = function(event) {
@@ -278,7 +318,10 @@ class FidotronConnection {
         xhr.open('GET', '/runapp/'+name, true);
 
         xhr.onerror = function() {
-            that.observer.Error("Error with launch request for "+name);
+            this.log("Error with launch request for "+name);
+            for (let o of that.observers) {
+                o.Error("Error with launch request for "+name);
+            }
         };
 
         xhr.send(null);
@@ -312,8 +355,8 @@ class FidotronConnection {
 }
 
 var c = null;
- 
-function subscribePanel(pattern) {
+
+function addSubscriptionPanel(pattern) {
     let p = new FidotronPanel(pattern);
 
     document.getElementById("panels-container").appendChild(p.Element());
@@ -329,40 +372,82 @@ function subscribePanel(pattern) {
     c.Subscribe(pattern, subListener);
 }
 
+function addLogPanel() {
+    let p = new FidotronPanel("System Log");
+
+    document.getElementById("panels-container").appendChild(p.Element());
+
+    let observer = {
+        LogUpdated: function(msg, html) {
+            p.Append(msg);
+        },
+
+        Connecting: function() {
+        },
+
+        Connected: function() {
+        },
+
+        Disconnected: function() {
+        }, 
+
+        Error: function(msg) {
+        }
+    };
+
+    p.SetCancelHandler(function(panel) {
+        c.RemoveObserver(observer);
+    });
+
+    c.AddObserver(observer);
+}
+ 
+function addPanel(panelType, pattern) {
+    switch(panelType) {
+        case "subscription":
+            addSubscriptionPanel(pattern);
+            break;
+        case "syslog":
+            addLogPanel();
+            break;
+        default:
+            console.log("Unhandled panel addition request " + panelType);
+            break;
+    }
+}
+
 function init() {
     var statusView = document.getElementById("status");
     var logview = document.getElementById("log");
 
-    function log(msg) {
+    function log(msg, html) {
         statusView.innerHTML = msg;
-        logview.innerHTML =  msg + "<br />" + logview.innerHTML;
+        logview.innerHTML = html;
     }
 
-    c = new FidotronConnection({
-        Log: function(msg) {
-            log(msg);
+    c = new FidotronConnection();
+
+    c.AddObserver({
+        LogUpdated: function(msg, html) {
+            log(msg, html);
         },
 
         Connecting: function() {
-            log("Connecting");
         },
 
         Connected: function() {
-            log("Connected");
         },
 
         Disconnected: function() {
-            log("Disconnected");
         }, 
 
         Error: function(msg) {
-            log("Error "+msg);
         }
     });
 
     c.ShouldConnect(true);
 
-    subscribePanel("#");
+    addPanel("subscription", "#");
 }
 
 function showStartMenu() {

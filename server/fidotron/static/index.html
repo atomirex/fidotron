@@ -17,8 +17,12 @@
                 <input type="submit" value="Send" onclick="c.Push(document.getElementById('topic').value, document.getElementById('payload').value);" />
                 
                 <h3>Add Panel</h3>
+                <select id="panel-type">
+                    <option value="syslog">System log</option>
+                    <option value="subscription">Subscription</option>
+                </select> 
                 <input type="text" name="panel-topic" id="panel-topic" />
-                <input type="submit" value="Add subscriber" onclick="subscribePanel(document.getElementById('panel-topic').value);" />           
+                <input type="submit" value="Add" onclick="addPanel(document.getElementById('panel-type').value, document.getElementById('panel-topic').value);" />           
 
                 <h3>Log</h3>
                 <p id="log"></p>

@@ -45,7 +45,8 @@ consumption.
     * [x] Ensure the pub/sub logic is working both in the server and the js
     * [x] Move status to bottom of window
     * [ ] Different panel "types" (sliders etc.) in js
-        * [ ] Log type
+        * [x] Log type
+        * [x] Subscription type
         * [ ] Tree type
         * [ ] Text entry
         * [ ] Number entry

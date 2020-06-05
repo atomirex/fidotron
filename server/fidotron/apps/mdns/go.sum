@@ -1,3 +1,5 @@
+github.com/atomirex/mdns v1.0.4 h1:cxDdc2Y8xta4H5HszJbTcFU9uThOFe61JetU3XzZsZE=
+github.com/atomirex/mdns v1.0.4/go.mod h1:mx0ZWP+7eE7+Cr/b/ywsTVzUf6QAlv4kSd0oy63K2MU=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/gorilla/websocket v1.4.1 h1:q7AeDBpnBk8AogcD4DSag/Ukw/KV+YhzLj2bP5HvKCM=
